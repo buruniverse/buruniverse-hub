@@ -6,595 +6,155 @@
 <title>∴ 通知回路 ∵</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;600&family=DM+Mono:ital,wght@0,300;1,300&display=swap');
-
   :root {
-    --bg: #0e0e0f;
-    --bg2: #141416;
-    --bg3: #1a1a1d;
-    --border: rgba(180,170,155,0.12);
-    --border-active: rgba(180,170,155,0.3);
-    --text: #c8bfb0;
-    --text-dim: #6b6460;
-    --accent: #c8a96e;
-    --accent-dim: rgba(200,169,110,0.15);
-    --danger: #8b4a4a;
-    --fog: rgba(200,190,175,0.04);
+    --bg: #0e0e0f; --bg2: #141416; --bg3: #1a1a1d;
+    --border: rgba(180,170,155,0.12); --border-active: rgba(180,170,155,0.3);
+    --text: #c8bfb0; --text-dim: #6b6460;
+    --accent: #c8a96e; --accent-dim: rgba(200,169,110,0.15);
+    --danger: #8b4a4a; --fog: rgba(200,190,175,0.04);
   }
-
   * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'DM Mono', monospace;
-    font-weight: 300;
-    font-size: 13px;
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-
-  /* 霧のキャンバス */
-  canvas#fog {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    pointer-events: none;
-    z-index: 0;
-    opacity: 0.5;
-  }
-
-  .shell {
-    position: relative;
-    z-index: 1;
-    max-width: 640px;
-    margin: 0 auto;
-    padding: 60px 24px 80px;
-  }
-
-  /* ヘッダー */
-  header {
-    margin-bottom: 56px;
-    border-bottom: 1px solid var(--border);
-    padding-bottom: 28px;
-  }
-
-  .title-jp {
-    font-family: 'Shippori Mincho', serif;
-    font-size: 11px;
-    letter-spacing: 0.4em;
-    color: var(--text-dim);
-    margin-bottom: 8px;
-  }
-
-  .title-main {
-    font-size: 11px;
-    letter-spacing: 0.25em;
-    color: var(--accent);
-  }
-
-  .title-symbol {
-    font-size: 20px;
-    color: var(--text-dim);
-    margin-right: 8px;
-  }
-
-  /* ステータス表示 */
-  .status-bar {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 40px;
-    padding: 12px 16px;
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 2px;
-  }
-
-  .status-dot {
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    background: var(--text-dim);
-    flex-shrink: 0;
-    transition: background 0.3s, box-shadow 0.3s;
-  }
-
-  .status-dot.active {
-    background: var(--accent);
-    box-shadow: 0 0 8px var(--accent);
-    animation: pulse 2s infinite;
-  }
-
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
-  }
-
-  #status-text {
-    color: var(--text-dim);
-    font-size: 11px;
-    letter-spacing: 0.05em;
-  }
-
-  /* セクション */
-  section {
-    margin-bottom: 40px;
-  }
-
-  .section-label {
-    font-size: 10px;
-    letter-spacing: 0.3em;
-    color: var(--text-dim);
-    margin-bottom: 16px;
-    text-transform: uppercase;
-  }
-
-  /* チャンネル設定 */
-  .channel-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 16px;
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 2px;
-    margin-bottom: 8px;
-  }
-
-  .channel-prefix {
-    color: var(--text-dim);
-    font-size: 11px;
-    white-space: nowrap;
-  }
-
-  input[type="text"] {
-    background: transparent;
-    border: none;
-    outline: none;
-    color: var(--accent);
-    font-family: 'DM Mono', monospace;
-    font-weight: 300;
-    font-size: 13px;
-    flex: 1;
-    letter-spacing: 0.05em;
-  }
-
-  input[type="text"]::placeholder {
-    color: var(--text-dim);
-  }
-
-  /* メッセージリスト */
-  .message-list {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    margin-bottom: 12px;
-  }
-
-  .message-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 14px;
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 2px;
-    transition: border-color 0.2s;
-    animation: fadeSlide 0.2s ease;
-  }
-
-  @keyframes fadeSlide {
-    from { opacity: 0; transform: translateY(-4px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .message-item:focus-within {
-    border-color: var(--border-active);
-  }
-
-  .message-handle {
-    color: var(--text-dim);
-    font-size: 10px;
-    cursor: grab;
-    user-select: none;
-    flex-shrink: 0;
-  }
-
-  .message-input {
-    flex: 1;
-  }
-
-  .message-delete {
-    background: none;
-    border: none;
-    color: var(--text-dim);
-    cursor: pointer;
-    font-size: 14px;
-    padding: 0 2px;
-    line-height: 1;
-    transition: color 0.2s;
-    flex-shrink: 0;
-  }
-
+  body { background: var(--bg); color: var(--text); font-family: 'DM Mono', monospace; font-weight: 300; font-size: 13px; min-height: 100vh; overflow-x: hidden; }
+  canvas#fog { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; opacity: 0.5; }
+  .shell { position: relative; z-index: 1; max-width: 640px; margin: 0 auto; padding: 60px 24px 80px; }
+  header { margin-bottom: 56px; border-bottom: 1px solid var(--border); padding-bottom: 28px; }
+  .title-jp { font-family: 'Shippori Mincho', serif; font-size: 11px; letter-spacing: 0.4em; color: var(--text-dim); margin-bottom: 8px; }
+  .title-main { font-size: 11px; letter-spacing: 0.25em; color: var(--accent); }
+  .title-symbol { font-size: 20px; color: var(--text-dim); margin-right: 8px; }
+  .status-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 40px; padding: 12px 16px; background: var(--bg2); border: 1px solid var(--border); border-radius: 2px; }
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-dim); flex-shrink: 0; transition: background 0.3s, box-shadow 0.3s; }
+  .status-dot.active { background: var(--accent); box-shadow: 0 0 8px var(--accent); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+  #status-text { color: var(--text-dim); font-size: 11px; letter-spacing: 0.05em; }
+  section { margin-bottom: 40px; }
+  .section-label { font-size: 10px; letter-spacing: 0.3em; color: var(--text-dim); margin-bottom: 16px; text-transform: uppercase; }
+  .channel-row { display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: var(--bg2); border: 1px solid var(--border); border-radius: 2px; margin-bottom: 8px; }
+  .channel-prefix { color: var(--text-dim); font-size: 11px; white-space: nowrap; }
+  input[type="text"] { background: transparent; border: none; outline: none; color: var(--accent); font-family: 'DM Mono', monospace; font-weight: 300; font-size: 13px; flex: 1; letter-spacing: 0.05em; }
+  .ntfy-hint { margin-top: 8px; font-size: 10px; color: var(--text-dim); letter-spacing: 0.05em; line-height: 1.8; }
+  .message-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+  .message-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--bg2); border: 1px solid var(--border); border-radius: 2px; transition: border-color 0.2s; animation: fadeSlide 0.2s ease; }
+  @keyframes fadeSlide { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+  .message-item:focus-within { border-color: var(--border-active); }
+  .message-handle { color: var(--text-dim); font-size: 10px; cursor: grab; user-select: none; flex-shrink: 0; }
+  .message-input { flex: 1; }
+  .message-delete { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 14px; padding: 0 2px; line-height: 1; transition: color 0.2s; flex-shrink: 0; }
   .message-delete:hover { color: var(--danger); }
-
-  /* 追加ボタン */
-  .add-btn {
-    width: 100%;
-    padding: 10px;
-    background: transparent;
-    border: 1px dashed var(--border);
-    border-radius: 2px;
-    color: var(--text-dim);
-    font-family: 'DM Mono', monospace;
-    font-weight: 300;
-    font-size: 11px;
-    letter-spacing: 0.1em;
-    cursor: pointer;
-    transition: border-color 0.2s, color 0.2s;
-  }
-
-  .add-btn:hover {
-    border-color: var(--border-active);
-    color: var(--text);
-  }
-
-  /* スライダー系 */
-  .slider-row {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 12px 16px;
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 2px;
-    margin-bottom: 8px;
-  }
-
-  .slider-label {
-    font-size: 11px;
-    color: var(--text-dim);
-    width: 120px;
-    flex-shrink: 0;
-  }
-
-  input[type="range"] {
-    flex: 1;
-    -webkit-appearance: none;
-    height: 1px;
-    background: var(--border);
-    outline: none;
-  }
-
-  input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background: var(--accent);
-    cursor: pointer;
-    transition: box-shadow 0.2s;
-  }
-
-  input[type="range"]::-webkit-slider-thumb:hover {
-    box-shadow: 0 0 8px var(--accent);
-  }
-
-  .slider-value {
-    font-size: 11px;
-    color: var(--accent);
-    width: 60px;
-    text-align: right;
-    flex-shrink: 0;
-  }
-
-  /* 時間帯 */
-  .time-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 16px;
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 2px;
-    margin-bottom: 8px;
-  }
-
-  .time-label {
-    font-size: 11px;
-    color: var(--text-dim);
-    width: 80px;
-    flex-shrink: 0;
-  }
-
-  input[type="number"] {
-    background: var(--bg3);
-    border: 1px solid var(--border);
-    border-radius: 2px;
-    color: var(--accent);
-    font-family: 'DM Mono', monospace;
-    font-size: 13px;
-    padding: 4px 10px;
-    width: 64px;
-    text-align: center;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-
+  .add-btn { width: 100%; padding: 10px; background: transparent; border: 1px dashed var(--border); border-radius: 2px; color: var(--text-dim); font-family: 'DM Mono', monospace; font-weight: 300; font-size: 11px; letter-spacing: 0.1em; cursor: pointer; transition: border-color 0.2s, color 0.2s; }
+  .add-btn:hover { border-color: var(--border-active); color: var(--text); }
+  .slider-row { display: flex; align-items: center; gap: 16px; padding: 12px 16px; background: var(--bg2); border: 1px solid var(--border); border-radius: 2px; margin-bottom: 8px; }
+  .slider-label { font-size: 11px; color: var(--text-dim); width: 120px; flex-shrink: 0; }
+  input[type="range"] { flex: 1; -webkit-appearance: none; height: 1px; background: var(--border); outline: none; }
+  input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: var(--accent); cursor: pointer; transition: box-shadow 0.2s; }
+  input[type="range"]::-webkit-slider-thumb:hover { box-shadow: 0 0 8px var(--accent); }
+  .slider-value { font-size: 11px; color: var(--accent); width: 60px; text-align: right; flex-shrink: 0; }
+  .time-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--bg2); border: 1px solid var(--border); border-radius: 2px; margin-bottom: 8px; }
+  .time-label { font-size: 11px; color: var(--text-dim); width: 80px; flex-shrink: 0; }
+  input[type="number"] { background: var(--bg3); border: 1px solid var(--border); border-radius: 2px; color: var(--accent); font-family: 'DM Mono', monospace; font-size: 13px; padding: 4px 10px; width: 64px; text-align: center; outline: none; transition: border-color 0.2s; }
   input[type="number"]:focus { border-color: var(--border-active); }
-
-  .time-sep {
-    color: var(--text-dim);
-    font-size: 11px;
-  }
-
-  /* テスト・起動ボタン */
-  .button-row {
-    display: flex;
-    gap: 10px;
-    margin-top: 40px;
-  }
-
-  .btn-test {
-    flex: 1;
-    padding: 14px;
-    background: transparent;
-    border: 1px solid var(--border-active);
-    border-radius: 2px;
-    color: var(--text);
-    font-family: 'DM Mono', monospace;
-    font-weight: 300;
-    font-size: 11px;
-    letter-spacing: 0.2em;
-    cursor: pointer;
-    transition: background 0.2s, color 0.2s;
-    text-transform: uppercase;
-  }
-
-  .btn-test:hover {
-    background: var(--fog);
-    color: var(--accent);
-  }
-
-  .btn-start {
-    flex: 2;
-    padding: 14px;
-    background: var(--accent-dim);
-    border: 1px solid var(--accent);
-    border-radius: 2px;
-    color: var(--accent);
-    font-family: 'Shippori Mincho', serif;
-    font-size: 14px;
-    letter-spacing: 0.2em;
-    cursor: pointer;
-    transition: background 0.2s, box-shadow 0.2s;
-  }
-
-  .btn-start:hover {
-    background: rgba(200,169,110,0.2);
-    box-shadow: 0 0 20px rgba(200,169,110,0.15);
-  }
-
-  .btn-start.running {
-    background: rgba(139,74,74,0.15);
-    border-color: var(--danger);
-    color: #c47070;
-  }
-
-  /* ログ */
-  .log {
-    margin-top: 32px;
-    padding: 16px;
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 2px;
-    min-height: 80px;
-    max-height: 180px;
-    overflow-y: auto;
-  }
-
-  .log-line {
-    font-size: 11px;
-    color: var(--text-dim);
-    margin-bottom: 6px;
-    display: flex;
-    gap: 10px;
-    animation: fadeIn 0.3s ease;
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; } to { opacity: 1; }
-  }
-
+  .time-sep { color: var(--text-dim); font-size: 11px; }
+  .button-row { display: flex; gap: 10px; margin-top: 40px; }
+  .btn-test { flex: 1; padding: 14px; background: transparent; border: 1px solid var(--border-active); border-radius: 2px; color: var(--text); font-family: 'DM Mono', monospace; font-weight: 300; font-size: 11px; letter-spacing: 0.2em; cursor: pointer; transition: background 0.2s, color 0.2s; text-transform: uppercase; }
+  .btn-test:hover { background: var(--fog); color: var(--accent); }
+  .btn-start { flex: 2; padding: 14px; background: var(--accent-dim); border: 1px solid var(--accent); border-radius: 2px; color: var(--accent); font-family: 'Shippori Mincho', serif; font-size: 14px; letter-spacing: 0.2em; cursor: pointer; transition: background 0.2s, box-shadow 0.2s; }
+  .btn-start:hover { background: rgba(200,169,110,0.2); box-shadow: 0 0 20px rgba(200,169,110,0.15); }
+  .btn-start.running { background: rgba(139,74,74,0.15); border-color: var(--danger); color: #c47070; }
+  .log { margin-top: 32px; padding: 16px; background: var(--bg2); border: 1px solid var(--border); border-radius: 2px; min-height: 80px; max-height: 180px; overflow-y: auto; }
+  .log-line { font-size: 11px; color: var(--text-dim); margin-bottom: 6px; display: flex; gap: 10px; animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
   .log-time { color: var(--text-dim); flex-shrink: 0; opacity: 0.5; }
   .log-msg { color: var(--text); }
   .log-sent { color: var(--accent); }
   .log-err { color: var(--danger); }
-
-  /* フッター */
-  footer {
-    margin-top: 60px;
-    padding-top: 20px;
-    border-top: 1px solid var(--border);
-    font-size: 10px;
-    color: var(--text-dim);
-    letter-spacing: 0.2em;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .ntfy-hint {
-    margin-top: 8px;
-    font-size: 10px;
-    color: var(--text-dim);
-    letter-spacing: 0.05em;
-    line-height: 1.8;
-  }
-
+  footer { margin-top: 60px; padding-top: 20px; border-top: 1px solid var(--border); font-size: 10px; color: var(--text-dim); letter-spacing: 0.2em; display: flex; justify-content: space-between; align-items: center; }
   a { color: var(--text-dim); text-decoration: underline; text-underline-offset: 3px; }
   a:hover { color: var(--accent); }
-
-  select {
-    background: var(--bg3);
-    border: 1px solid var(--border);
-    border-radius: 2px;
-    color: var(--accent);
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    padding: 4px 8px;
-    outline: none;
-    cursor: pointer;
-  }
-
-  .probability-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 16px;
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 2px;
-    margin-bottom: 8px;
-  }
 </style>
 </head>
 <body>
 <canvas id="fog"></canvas>
-
 <div class="shell">
   <header>
     <div class="title-jp">通知回路 / 共通エンジン</div>
     <div class="title-main"><span class="title-symbol">∴</span>buruniverse notifier∵</div>
   </header>
-
-  <!-- ステータス -->
   <div class="status-bar">
     <div class="status-dot" id="dot"></div>
     <span id="status-text">停止中 — 次の送信まで待機していません</span>
   </div>
-
-  <!-- チャンネル -->
   <section>
     <div class="section-label">// channel</div>
     <div class="channel-row">
       <span class="channel-prefix">ntfy.sh /</span>
       <input type="text" id="channel" value="buruniverse" placeholder="channel-name" />
     </div>
-    <div class="ntfy-hint">
-      iPhoneに届けるには <a href="https://ntfy.sh" target="_blank">ntfy</a> アプリをインストールして、このチャンネル名を購読してください。
-    </div>
+    <div class="ntfy-hint">iPhoneに届けるには <a href="https://ntfy.sh" target="_blank">ntfy</a> アプリをインストールして、このチャンネル名を購読してください。</div>
   </section>
-
-  <!-- メッセージリスト -->
   <section>
     <div class="section-label">// messages</div>
     <div class="message-list" id="message-list"></div>
     <button class="add-btn" onclick="addMessage()">＋ メッセージを追加</button>
   </section>
-
-  <!-- タイミング設定 -->
   <section>
     <div class="section-label">// timing</div>
-
     <div class="slider-row">
       <span class="slider-label">間隔（分）</span>
       <input type="range" id="interval" min="5" max="120" value="30" step="5"
         oninput="document.getElementById('interval-val').textContent = this.value + ' 分'">
       <span class="slider-value" id="interval-val">30 分</span>
     </div>
-
     <div class="slider-row">
       <span class="slider-label">発火確率</span>
       <input type="range" id="probability" min="10" max="100" value="60" step="10"
         oninput="document.getElementById('prob-val').textContent = this.value + '%'">
       <span class="slider-value" id="prob-val">60%</span>
     </div>
-
     <div class="time-row">
       <span class="time-label">活動時間帯</span>
       <input type="number" id="hour-start" value="8" min="0" max="23"> 時
       <span class="time-sep">〜</span>
       <input type="number" id="hour-end" value="23" min="0" max="23"> 時
-      <span class="time-sep" style="margin-left:8px; font-size:10px; opacity:0.5">（この時間帯のみ送信）</span>
     </div>
   </section>
-
-  <!-- ボタン -->
   <div class="button-row">
     <button class="btn-test" onclick="sendTest()">テスト送信</button>
     <button class="btn-start" id="start-btn" onclick="toggleEngine()">回路を起動する</button>
   </div>
-
-  <!-- ログ -->
   <div class="log" id="log">
     <div class="log-line"><span class="log-time">--:--:--</span><span class="log-msg">待機中...</span></div>
   </div>
-
   <footer>
     <span>∴ buruniverse notifier v0.1 ∵</span>
     <a href="https://ntfy.sh/buruniverse" target="_blank" style="font-size:10px">チャンネルを確認 →</a>
   </footer>
 </div>
-
 <script>
-// --- 霧パーティクル ---
+// fog particles
 const canvas = document.getElementById('fog');
 const ctx = canvas.getContext('2d');
 let pts = [];
-
-function resize() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-}
-
+function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
 class Mote {
   constructor() { this.reset(); }
-  reset() {
-    this.x = Math.random() * canvas.width;
-    this.y = Math.random() * canvas.height;
-    this.vx = (Math.random() - 0.5) * 0.3;
-    this.vy = (Math.random() - 0.5) * 0.3;
-    this.r = Math.random() * 1.2 + 0.3;
-    this.a = Math.random() * 0.4 + 0.1;
-  }
-  update() {
-    this.x += this.vx; this.y += this.vy;
-    if (this.x < 0) this.x = canvas.width;
-    if (this.x > canvas.width) this.x = 0;
-    if (this.y < 0) this.y = canvas.height;
-    if (this.y > canvas.height) this.y = 0;
-  }
-  draw() {
-    ctx.globalAlpha = this.a;
-    ctx.fillStyle = '#c8bfb0';
-    ctx.beginPath();
-    ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
-    ctx.fill();
-  }
+  reset() { this.x = Math.random()*canvas.width; this.y = Math.random()*canvas.height; this.vx=(Math.random()-0.5)*0.3; this.vy=(Math.random()-0.5)*0.3; this.r=Math.random()*1.2+0.3; this.a=Math.random()*0.4+0.1; }
+  update() { this.x+=this.vx; this.y+=this.vy; if(this.x<0)this.x=canvas.width; if(this.x>canvas.width)this.x=0; if(this.y<0)this.y=canvas.height; if(this.y>canvas.height)this.y=0; }
+  draw() { ctx.globalAlpha=this.a; ctx.fillStyle='#c8bfb0'; ctx.beginPath(); ctx.arc(this.x,this.y,this.r,0,Math.PI*2); ctx.fill(); }
 }
-
 resize();
-for (let i = 0; i < 1200; i++) pts.push(new Mote());
-
-function fogLoop() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.globalAlpha = 1;
-  pts.forEach(p => { p.update(); p.draw(); });
-  requestAnimationFrame(fogLoop);
-}
+for(let i=0;i<1200;i++) pts.push(new Mote());
+function fogLoop() { ctx.clearRect(0,0,canvas.width,canvas.height); ctx.globalAlpha=1; pts.forEach(p=>{p.update();p.draw();}); requestAnimationFrame(fogLoop); }
 fogLoop();
-window.addEventListener('resize', resize);
+window.addEventListener('resize',resize);
 
-// --- メッセージ管理 ---
+// messages
 const DEFAULT_MESSAGES = [
-  '\u529B\u629C\u3044\u3066\u301C (\uFF61\uFF65\u03C9\uFF65\uFF61)',
-  '\u984E\u3001\u3086\u308B\u3081\u3066',
-  '\u4ECA\u3001\u98DF\u3044\u3057\u3070\u3063\u3066\u306A\u3044\uFF1F',
-  '\u80A9\u304A\u3068\u3057\u3066',
-  '\u606F\u3001\u3061\u3083\u3093\u3068\u3057\u3066\u308B\uFF1F',
-  '\u6C34\u98F2\u3082\u3046',
+  '力抜いて〜 (｡･ω･｡)',
+  '顎、ゆるめて',
+  '今、食いしばってない？',
+  '肩おとして',
+  '息、ちゃんとしてる？',
+  '水飲もう',
 ];
-
 let messages = [...DEFAULT_MESSAGES];
 
 function renderMessages() {
@@ -603,163 +163,104 @@ function renderMessages() {
   messages.forEach((msg, i) => {
     const div = document.createElement('div');
     div.className = 'message-item';
-    div.innerHTML = `
-      <span class="message-handle">⋮⋮</span>
-      <input class="message-input" type="text" value="${msg.replace(/"/g,'&quot;')}"
-        oninput="messages[${i}]=this.value">
-      <button class="message-delete" onclick="removeMessage(${i})">×</button>
-    `;
+    div.innerHTML = '<span class="message-handle">⋮⋮</span><input class="message-input" type="text" value="' + msg.replace(/"/g,'&quot;') + '" oninput="messages[' + i + ']=this.value"><button class="message-delete" onclick="removeMessage(' + i + ')">×</button>';
     list.appendChild(div);
   });
 }
-
 function addMessage() {
   messages.push('');
   renderMessages();
-  // フォーカス最後の入力に
   const inputs = document.querySelectorAll('.message-input');
-  if (inputs.length) inputs[inputs.length - 1].focus();
+  if(inputs.length) inputs[inputs.length-1].focus();
 }
-
-function removeMessage(i) {
-  messages.splice(i, 1);
-  renderMessages();
-}
-
+function removeMessage(i) { messages.splice(i,1); renderMessages(); }
 renderMessages();
 
-// --- 通知送信 ---
+// send
 async function sendToNtfy(msg) {
   const channel = document.getElementById('channel').value.trim() || 'buruniverse';
   try {
-    const res = await fetch(`https://ntfy.sh/${channel}`, {
-      method: 'POST',
-      body: msg,
-      headers: {
-        'Title': '∴',
-        'Priority': '2',
-        'Tags': 'fog'
-      }
+    const res = await fetch('https://ntfy.sh/' + channel, {
+      method: 'POST', body: msg,
+      headers: { 'Title': '∴', 'Priority': '2', 'Tags': 'fog' }
     });
     return res.ok;
-  } catch(e) {
-    return false;
-  }
+  } catch(e) { return false; }
 }
-
 function pickMessage() {
   const valid = messages.filter(m => m.trim());
-  if (!valid.length) return null;
-  return valid[Math.floor(Math.random() * valid.length)];
+  if(!valid.length) return null;
+  return valid[Math.floor(Math.random()*valid.length)];
 }
-
-function log(text, type = 'msg') {
+function log(text, type) {
+  type = type || 'msg';
   const logEl = document.getElementById('log');
   const now = new Date();
-  const t = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+  const t = String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0')+':'+String(now.getSeconds()).padStart(2,'0');
   const div = document.createElement('div');
   div.className = 'log-line';
-  div.innerHTML = `<span class="log-time">${t}</span><span class="log-${type}">${text}</span>`;
+  div.innerHTML = '<span class="log-time">'+t+'</span><span class="log-'+type+'">'+text+'</span>';
   logEl.appendChild(div);
   logEl.scrollTop = logEl.scrollHeight;
-  // 古いログを削除
-  while (logEl.children.length > 30) logEl.removeChild(logEl.firstChild);
+  while(logEl.children.length > 30) logEl.removeChild(logEl.firstChild);
 }
-
 async function sendTest() {
   const msg = pickMessage();
-  if (!msg) { log('メッセージが空です', 'err'); return; }
-  log(`テスト送信: "${msg}"`, 'msg');
+  if(!msg) { log('メッセージが空です','err'); return; }
+  log('テスト送信: "'+msg+'"','msg');
   const ok = await sendToNtfy(msg);
-  if (ok) log('✓ 送信完了', 'sent');
-  else log('✗ 送信失敗（チャンネル名やネットを確認）', 'err');
+  if(ok) log('✓ 送信完了','sent');
+  else log('✗ 送信失敗（ntfy.shに接続できません）','err');
 }
 
-// --- エンジン ---
+// engine
 let engineTimer = null;
 let running = false;
-
-function toggleEngine() {
-  if (running) {
-    stopEngine();
-  } else {
-    startEngine();
-  }
-}
-
+function toggleEngine() { if(running) stopEngine(); else startEngine(); }
 function startEngine() {
   running = true;
   document.getElementById('dot').classList.add('active');
   document.getElementById('start-btn').textContent = '回路を停止する';
   document.getElementById('start-btn').classList.add('running');
   scheduleNext();
-  log('▶ 回路起動', 'sent');
+  log('▶ 回路起動','sent');
 }
-
 function stopEngine() {
   running = false;
-  if (engineTimer) { clearTimeout(engineTimer); engineTimer = null; }
+  if(engineTimer) { clearTimeout(engineTimer); engineTimer = null; }
   document.getElementById('dot').classList.remove('active');
   document.getElementById('start-btn').textContent = '回路を起動する';
   document.getElementById('start-btn').classList.remove('running');
   document.getElementById('status-text').textContent = '停止中';
-  log('■ 回路停止', 'msg');
+  log('■ 回路停止','msg');
 }
-
 function scheduleNext() {
-  if (!running) return;
-  const interval = parseInt(document.getElementById('interval').value) * 60 * 1000;
-  const jitter = (Math.random() - 0.5) * interval * 0.3; // ±15%のゆらぎ
-  const next = interval + jitter;
-  const nextMin = Math.round(next / 60000);
-
-  const nextTime = new Date(Date.now() + next);
+  if(!running) return;
+  const interval = parseInt(document.getElementById('interval').value)*60*1000;
+  const jitter = (Math.random()-0.5)*interval*0.3;
+  const next = interval+jitter;
+  const nextTime = new Date(Date.now()+next);
   const h = String(nextTime.getHours()).padStart(2,'0');
   const m = String(nextTime.getMinutes()).padStart(2,'0');
-  document.getElementById('status-text').textContent = `次の試行: ${h}:${m}（±ゆらぎ）`;
-
-  engineTimer = setTimeout(async () => {
-    if (!running) return;
-    await tryFire();
-    scheduleNext();
-  }, next);
+  document.getElementById('status-text').textContent = '次回: '+h+':'+m;
+  engineTimer = setTimeout(async()=>{ if(!running)return; await tryFire(); scheduleNext(); }, next);
 }
-
 async function tryFire() {
-  // 時間帯チェック
   const now = new Date();
   const h = now.getHours();
   const start = parseInt(document.getElementById('hour-start').value);
   const end = parseInt(document.getElementById('hour-end').value);
-
-  if (h < start || h >= end) {
-    log(`時間帯外 (${h}時) — スキップ , 'msg');
-    return;
-  }
-
-  // 確率チェック
-  const prob = parseInt(document.getElementById('probability').value) / 100;
-  if (Math.random() > prob) {
-    log('確率ミス — スキップ', 'msg');
-    return;
-  }
-
-  // 送信
+  if(h<start||h>=end) { log('時間外 ('+h+'時) - skip','msg'); return; }
+  const prob = parseInt(document.getElementById('probability').value)/100;
+  if(Math.random()>prob) { log('確率miss - skip','msg'); return; }
   const msg = pickMessage();
-  if (!msg) return;
-  log(`送信: "${msg}"`, 'msg');
+  if(!msg) return;
+  log('送信: "'+msg+'"','msg');
   const ok = await sendToNtfy(msg);
-  if (ok) log('✓ 届きました', 'sent');
-  else log('✗ 送信失敗', 'err');
+  if(ok) log('✓ 届きました','sent');
+  else log('✗ 失敗','err');
 }
-
-// ページを閉じると停止することを知らせる
-window.addEventListener('beforeunload', (e) => {
-  if (running) {
-    e.preventDefault();
-    e.returnValue = '';
-  }
-});
+window.addEventListener('beforeunload', (e)=>{ if(running){e.preventDefault();e.returnValue='';} });
 </script>
 </body>
 </html>
