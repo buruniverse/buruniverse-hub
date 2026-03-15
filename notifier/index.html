@@ -129,6 +129,27 @@
   </footer>
 </div>
 <script>
+// ── URLパラメータ読み込み ──────────────────────────────
+(function applyURLParams() {
+  const p = new URLSearchParams(window.location.search);
+
+  if (p.get('ch')) {
+    document.getElementById('channel').value = p.get('ch');
+  }
+  if (p.get('interval')) {
+    const v = p.get('interval');
+    document.getElementById('interval').value = v;
+    document.getElementById('interval-val').textContent = v + ' 分';
+  }
+  if (p.get('start')) {
+    document.getElementById('hour-start').value = p.get('start');
+  }
+  if (p.get('end')) {
+    document.getElementById('hour-end').value = p.get('end');
+  }
+})();
+// ─────────────────────────────────────────────────────
+
 const canvas=document.getElementById('fog');
 const ctx=canvas.getContext('2d');
 let pts=[];
@@ -153,7 +174,15 @@ const DEFAULT_MESSAGES=[
   '息、ちゃんとしてる？',
   '水飲もう',
 ];
-let messages=[...DEFAULT_MESSAGES];
+
+// URLパラメータからメッセージを読む（msg0, msg1, msg2...）
+const p = new URLSearchParams(window.location.search);
+const urlMessages = [];
+for (let i = 0; p.get('msg' + i) !== null; i++) {
+  const m = p.get('msg' + i).trim();
+  if (m) urlMessages.push(m);
+}
+let messages = urlMessages.length ? urlMessages : [...DEFAULT_MESSAGES];
 
 function renderMessages(){
   const list=document.getElementById('message-list');
